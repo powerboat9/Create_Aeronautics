@@ -10,7 +10,7 @@
       "item": "create:shaft"
     },
     "P": {
-      "tag": "minecraft:planks"
+      "item": "create:precision_mechanism"
     },
     "C": {
       "item": "create:brass_casing"
@@ -23,7 +23,7 @@
     }
   },
   "result": {
-    "item": "createaeronautics:propeller_bearing",
+    "item": "createaeronautics:gyroscopic_propeller_bearing",
     "count": 1
   }
 }

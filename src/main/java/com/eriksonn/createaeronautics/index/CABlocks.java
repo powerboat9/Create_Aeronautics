@@ -2,6 +2,7 @@ package com.eriksonn.createaeronautics.index;
 
 import com.eriksonn.createaeronautics.CreateAeronautics;
 import com.eriksonn.createaeronautics.blocks.airship_assembler.AirshipAssemblerBlock;
+import com.eriksonn.createaeronautics.blocks.gyroscopic_propeller_bearing.GyroscopicBearingBlock;
 import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingBlock;
 import com.eriksonn.createaeronautics.blocks.stationary_potato_cannon.StationaryPotatoCannonBlock;
 import com.eriksonn.createaeronautics.blocks.stirling_engine.StirlingEngineBlock;
@@ -57,12 +58,19 @@ public class CABlocks {
     public static final BlockEntry<PropellerBearingBlock> PROPELLER_BEARING = REGISTRATE.block("propeller_bearing", PropellerBearingBlock::new)
             .initialProperties(SharedProperties::stone)
             .properties(AbstractBlock.Properties::noOcclusion)
-            .blockstate(BlockStateUtils::propellerBearingBlockstate)
+            .blockstate((ctx, prov) -> BlockStateUtils.facingBlockstate(ctx, prov, "block/propeller_bearing/block"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag) //Dono what this tag means (contraption safe?).
             .item()
             .transform(customItemModel())
             .register();
-
+    public static final BlockEntry<GyroscopicBearingBlock> GYROSCOPIC_PROPELLER_BEARING = REGISTRATE.block("gyroscopic_propeller_bearing",GyroscopicBearingBlock::new)
+            .initialProperties(SharedProperties::stone)
+            .properties(AbstractBlock.Properties::noOcclusion)
+            .blockstate((ctx, prov) -> BlockStateUtils.facingBlockstate(ctx, prov, "block/gyroscopic_propeller_bearing/block"))
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag) //Dono what this tag means (contraption safe?).
+            .item()
+            .transform(customItemModel())
+            .register();
     public static final BlockEntry<StationaryPotatoCannonBlock> STATIONARY_POTATO_CANNON = REGISTRATE.block("stationary_potato_cannon", StationaryPotatoCannonBlock::new)
             .initialProperties(SharedProperties::stone)
             .blockstate(BlockStateUtils::directionalPoweredAxisBlockstate)

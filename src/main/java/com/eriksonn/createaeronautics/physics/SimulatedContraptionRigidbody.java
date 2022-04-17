@@ -2,14 +2,11 @@ package com.eriksonn.createaeronautics.physics;
 
 
 import com.eriksonn.createaeronautics.contraptions.AirshipContraption;
-import com.eriksonn.createaeronautics.contraptions.AirshipContraptionEntity;
-import com.eriksonn.createaeronautics.contraptions.AirshipManager;
 import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingTileEntity;
 import com.eriksonn.createaeronautics.index.CABlocks;
 import com.eriksonn.createaeronautics.index.CAConfig;
-import com.eriksonn.createaeronautics.index.CATileEntities;
 import com.eriksonn.createaeronautics.mixins.ControlledContraptionEntityMixin;
-import com.eriksonn.createaeronautics.particle.PropellerAirParticleData;
+import com.eriksonn.createaeronautics.physics.api.IThrustProvider;
 import com.eriksonn.createaeronautics.physics.api.PhysicsAdapter;
 import com.eriksonn.createaeronautics.physics.collision.detection.Contact;
 import com.eriksonn.createaeronautics.physics.collision.detection.ICollisionDetector;
@@ -19,6 +16,7 @@ import com.eriksonn.createaeronautics.physics.collision.detection.impl.SphereCol
 import com.eriksonn.createaeronautics.physics.collision.resolution.IIterativeManifoldSolver;
 import com.eriksonn.createaeronautics.physics.collision.resolution.SequentialManifoldSolver;
 import com.eriksonn.createaeronautics.physics.collision.shape.MeshCollisionShapeGenerator;
+import com.eriksonn.createaeronautics.utils.MathUtils;
 import com.simibubi.create.AllTileEntities;
 import com.simibubi.create.content.contraptions.components.fan.EncasedFanTileEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
@@ -29,7 +27,6 @@ import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.state.Property;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
@@ -38,7 +35,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.gen.feature.template.Template;
 import net.minecraftforge.fluids.FluidAttributes;
 
@@ -154,7 +150,7 @@ public AirshipContraption contraption;
         globalForce=globalForce.add(0,-totalAccumulatedBuoyancy,0);
         //globalForce=globalForce.add(0,-PhysicsUtils.gravity*mass,0);
 
-        momentum = momentum.add(rotateQuat(localForce.scale(deltaTime),orientation)).add(globalForce.scale(deltaTime));
+        momentum = momentum.add(MathUtils.rotateQuat(localForce.scale(deltaTime),orientation)).add(globalForce.scale(deltaTime));
         globalForce = Vector3d.ZERO;
         localForce = Vector3d.ZERO;
         localTorque =Vector3d.ZERO;
@@ -170,7 +166,7 @@ public AirshipContraption contraption;
 
         momentum=momentum.scale(0.995);
         globalVelocity=momentum.scale(1.0/mass);
-        localVelocity = rotateQuatReverse(globalVelocity,orientation);
+        localVelocity = MathUtils.rotateQuatReverse(globalVelocity,orientation);
 
         float c = (float)Math.cos(CurrentAxisAngle);
         float s = (float)Math.sin(CurrentAxisAngle);
@@ -330,25 +326,7 @@ public AirshipContraption contraption;
         q.normalize();
         return q;
     }
-    public static Vector3d rotateQuat(Vector3d V,Quaternion Q)
-    {
-        Quaternion q=new Quaternion((float)V.x,(float)V.y,(float)V.z,0.0f);
-        Quaternion Q2 = Q.copy();
-        q.mul(Q2);
-        Q2.conj();
-        Q2.mul(q);
-        return new Vector3d(Q2.i(),Q2.j(),Q2.k());
-    }
-    public static Vector3d rotateQuatReverse(Vector3d V,Quaternion Q)
-    {
-        Quaternion q=new Quaternion((float)V.x,(float)V.y,(float)V.z,0.0f);
-        Quaternion Q2 = Q.copy();
-        Q2.conj();
-        q.mul(Q2);
-        Q2.conj();
-        Q2.mul(q);
-        return new Vector3d(Q2.i(),Q2.j(),Q2.k());
-    }
+
     void updateLevititeBuoyancy()
     {
         List<Vector3d> levititeBlocks=new ArrayList<>();
@@ -428,14 +406,14 @@ public AirshipContraption contraption;
         updateSpectralDecomposition();
 
         //global torque to local reference frame
-        localTorque = localTorque.add(rotateQuatReverse(globalTorque,orientation));
+        localTorque = localTorque.add(MathUtils.rotateQuatReverse(globalTorque,orientation));
 
         //torque gives a change of angular momentum over time
         angularMomentum=angularMomentum.add(localTorque.scale(deltaTime));
 
         //rotate the angular momentum into the principal reference frame and scale by the inverse of the inertia
         //tensor to get angular velocity in the principal frame
-        Vector3d principalVelocity = rotateQuat(multiplyInertiaInverse(angularMomentum), principalRotation);
+        Vector3d principalVelocity = MathUtils.rotateQuat(multiplyInertiaInverse(angularMomentum), principalRotation);
 
         //euler's rotation equations
         Vector3d principalTorque = new Vector3d(
@@ -445,7 +423,7 @@ public AirshipContraption contraption;
         );
 
         //rotate the torque back to the contraption grid
-        Vector3d extraTorque = rotateQuatReverse(principalTorque, principalRotation);
+        Vector3d extraTorque = MathUtils.rotateQuatReverse(principalTorque, principalRotation);
 
         double momentumMag = angularMomentum.length();
 
@@ -469,7 +447,7 @@ public AirshipContraption contraption;
 
         for (SubcontraptionRigidbody subcontraption : subcontraptionRigidbodyMap.values()) {
             // repeat for number of iterations
-            findContacts(subcontraption, contacts);
+            //findContacts(subcontraption, contacts);
         }
 
         return contacts;
@@ -594,9 +572,9 @@ public AirshipContraption contraption;
     Vector3d getPrincipalComponent(int column)
     {
         Vector3d v=setVectorFromIndex(column,1);
-        v=rotateQuat(v, principalRotation);
+        v= MathUtils.rotateQuat(v, principalRotation);
         v=multiplyInertia(v);
-        v=rotateQuatReverse(v, principalRotation);
+        v= MathUtils.rotateQuatReverse(v, principalRotation);
         return v;
     }
     /*void blockAddedEvent(BlockPos blockPos,Template.BlockInfo info)
@@ -684,7 +662,7 @@ public AirshipContraption contraption;
             Vector3d pos = getLocalCoordinate(entry.getKey());
             Vector3d vel = getLocalVelocityAtPosition(pos);
             Vector3d normal = getFacingVector(entry.getValue());
-            Vector3d force = normal.scale(-3.0f*normal.dot(vel));
+            Vector3d force = normal.scale(-8.0f*normal.dot(vel));
             addForce(force,pos);
         }
 
@@ -713,7 +691,7 @@ public AirshipContraption contraption;
                     Vector3d vel = getLocalVelocityAtPosition(pos);
                     Vector3d normal = getFacingVector(blockStateEntry.getValue().state);
                     normal = entity.applyRotation(normal,1);
-                    Vector3d force = normal.scale(-3.0f*normal.dot(vel));
+                    Vector3d force = normal.scale(-8.0f*normal.dot(vel));
                     addForce(force,pos);
 
                 }
@@ -739,8 +717,15 @@ public AirshipContraption contraption;
             TileEntity te = entry.getValue();
             BlockPos pos = entry.getKey();
             Vector3d posV = getLocalCoordinate(entry.getKey());
-            if(CATileEntities.PROPELLER_BEARING.is(te))
-                addGlobalForce(getForcePropellerBearing(pos,(PropellerBearingTileEntity)te),posV);
+            //if(CATileEntities.PROPELLER_BEARING.is(te))
+                //addForce(getForcePropellerBearing(pos,(PropellerBearingTileEntity)te),posV);
+            if(te instanceof IThrustProvider)
+            {
+                double airPressure = PhysicsUtils.getAirPressure(toGlobal(getLocalCoordinate(pos)));
+                Vector3d relativeVelocity = rotateInverse(getVelocityAtPoint(posV));
+                addForce(((IThrustProvider) te).getForce(pos,airPressure,relativeVelocity,this),posV);
+            }
+
             if(AllTileEntities.ENCASED_FAN.is(te))
                 addForce(getForceEncasedFan(pos,(EncasedFanTileEntity)te),posV);
 
@@ -765,29 +750,29 @@ public AirshipContraption contraption;
     }
 
     public Vector3d rotate(Vector3d point) {
-        return rotateQuat(point,orientation);
+        return MathUtils.rotateQuat(point,orientation);
     }
 
     public Vector3d rotateInverse(Vector3d point) {
-        return rotateQuatReverse(point,orientation);
+        return MathUtils.rotateQuatReverse(point,orientation);
     }
 
     public Vector3d rotateLocal(Vector3d point) {
-        return rotateQuat(point,orientation);
+        return MathUtils.rotateQuat(point,orientation);
     }
 
     public Vector3d rotateLocalInverse(Vector3d point) {
-        return rotateQuatReverse(point,orientation);
+        return MathUtils.rotateQuatReverse(point,orientation);
     }
 
     public Vector3d toLocal(Vector3d globalPoint) {
         Vector3d rotationOffset = VecHelper.getCenterOf(BlockPos.ZERO);
-        return rotateQuatReverse(globalPoint.subtract(adapter.position()).subtract(rotationOffset),orientation);
+        return MathUtils.rotateQuatReverse(globalPoint.subtract(adapter.position()).subtract(rotationOffset),orientation);
     }
 
     public Vector3d toGlobal(Vector3d localPoint) {
         Vector3d rotationalOffset = VecHelper.getCenterOf(BlockPos.ZERO);
-        return rotateQuat(localPoint.subtract(rotationalOffset).subtract(centerOfMass),orientation).add(rotationalOffset).add(adapter.position());
+        return MathUtils.rotateQuat(localPoint.subtract(rotationalOffset).subtract(centerOfMass),orientation).add(rotationalOffset).add(adapter.position());
     }
 
     public Vector3d getVelocity() {
@@ -818,7 +803,7 @@ public AirshipContraption contraption;
     public void applyImpulse(Vector3d pos, Vector3d impulse) {
         momentum = momentum.add(impulse);
         globalVelocity = momentum.scale(1.0 / getMass());
-        localVelocity = rotateQuatReverse(globalVelocity,orientation);
+        localVelocity = MathUtils.rotateQuatReverse(globalVelocity,orientation);
 
         Vector3d additionalAngularMomentum = rotateInverse(impulse).cross(pos);
         angularMomentum = angularMomentum.add(additionalAngularMomentum);
@@ -834,18 +819,9 @@ public AirshipContraption contraption;
     {
         return localVelocity.add(pos.cross(angularVelocity));
     }
-    Vector3d getForcePropellerBearing(BlockPos pos,PropellerBearingTileEntity te)
-    {
-        if(!te.isRunning())
-            return Vector3d.ZERO;
 
-        Vector3d direction=getFacingVector(te.getBlockState());
-        int sails = te.sailPositions.size();
-        float magnitude = 0.325f*(float)Math.pow(sails,1.5f)*te.getAngularSpeed();
-        if(te.movementDirection.getValue()==0)
-            magnitude*=-1;
-        return direction.scale(magnitude);
-    }
+    //Vector3d getForcePropellerBearing(BlockPos pos,PropellerBearingTileEntity te)
+
     Vector3d getForceEncasedFan(BlockPos pos,EncasedFanTileEntity te)
     {
 
@@ -926,13 +902,13 @@ public AirshipContraption contraption;
 
             double referenceBuoyancy = PhysicsUtils.gravity*PhysicsUtils.getAirPressure(referencePos)*strengthScale;
             double referenceBuoyancyDerivative = PhysicsUtils.gravity* PhysicsUtils.getAirPressureDerivative(referencePos)*strengthScale;
-            Vector3d rotatedAverage = rotateQuat(averagePos,rotation);
+            Vector3d rotatedAverage = MathUtils.rotateQuat(averagePos,rotation);
             double averageBuoyancy = referenceBuoyancy + rotatedAverage.dot(upVector) * referenceBuoyancyDerivative;
             double totalBuoyancy = averageBuoyancy*totalCount;
 
             Vector3d circleCenter = upVector.scale(averageSquaredMagnitudes*0.5);
             Vector3d circularOffset =projectedAveragePos.subtract(circleCenter);
-            circularOffset = circleCenter.add(rotateQuat(rotateQuat(circularOffset,rotation),rotation));
+            circularOffset = circleCenter.add(MathUtils.rotateQuat(MathUtils.rotateQuat(circularOffset,rotation),rotation));
 
             Vector3d averageBuoyancyPosition =
                     (rotatedAverage.scale(referenceBuoyancy)

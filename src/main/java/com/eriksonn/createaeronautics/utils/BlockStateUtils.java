@@ -45,13 +45,13 @@ public class BlockStateUtils {
                 }, BlockStateProperties.WATERLOGGED);
     }
 
-    public static <T extends Block> void propellerBearingBlockstate(DataGenContext<Block, T> ctx, RegistrateBlockstateProvider prov) {
+    public static <T extends Block> void facingBlockstate(DataGenContext<Block, T> ctx, RegistrateBlockstateProvider prov,String modelPath) {
         prov.directionalBlock(ctx.getEntry(),
                 blockState -> prov.models().getExistingFile(
-                        prov.modLoc("block/propeller_bearing/block_" + (blockState.getValue(PropellerBearingBlock.DIRECTION) == PropellerBearingBlock.Direction.PULL ? "forward" : "reverse")
-                        )
+                        prov.modLoc(modelPath)
                 )
         );
     }
+
 
 }

@@ -4,7 +4,9 @@ import appeng.me.helpers.GenericInterestManager;
 import com.eriksonn.createaeronautics.CreateAeronautics;
 import com.eriksonn.createaeronautics.dimension.AirshipDimensionManager;
 import com.eriksonn.createaeronautics.mixins.ContraptionHolderAccessor;
+import com.eriksonn.createaeronautics.physics.SimulatedContraptionRigidbody;
 import com.eriksonn.createaeronautics.utils.AbstractContraptionEntityExtension;
+import com.eriksonn.createaeronautics.world.FakeAirshipClientWorld;
 import com.simibubi.create.AllMovementBehaviours;
 import com.simibubi.create.content.contraptions.components.structureMovement.*;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.MechanicalBearingTileEntity;
@@ -20,6 +22,7 @@ import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.village.PointOfInterestType;
 import net.minecraft.world.World;
@@ -169,6 +172,26 @@ public class AirshipManager {
             block.state.updateIndirectNeighbourShapes(world, add, flags & -2);
         }
     }
+    public AirshipOrientedInfo getInfo(World world, BlockPos pos) {
+
+        Vector3d vecPos = new Vector3d(pos.getX(), pos.getY(), pos.getZ()).add(0.5, 0.5, 0.5);
+        if(world instanceof FakeAirshipClientWorld) {
+            FakeAirshipClientWorld fakeWorld = (FakeAirshipClientWorld) world;
+            AirshipContraptionEntity airship = fakeWorld.airship;
+
+            return new AirshipOrientedInfo(airship,airship.toGlobalVector(vecPos.subtract(0, airship.getPlotPos().getY(), 0), 0f), airship.quat, airship.level, true);
+        } else if (world == AirshipDimensionManager.INSTANCE.getWorld()) {
+            int airshipID = getIdFromPlotPos(pos);
+
+            AirshipContraptionEntity airship = AllAirships.get(airshipID);
+
+            BlockPos plotpos = getPlotPosFromId(airshipID);
+            return new AirshipOrientedInfo(airship,airship.toGlobalVector(vecPos.subtract(plotpos.getX(), plotpos.getY(), plotpos.getZ()), 0f), airship.quat, airship.level, true);
+        } else {
+            return new AirshipOrientedInfo(null,vecPos, Quaternion.ONE.copy(), world, false);
+        }
+
+    }
     @OnlyIn(Dist.CLIENT)
     protected void invalidate(Contraption contraption) {
         ContraptionRenderDispatcher.invalidate(contraption);
@@ -219,6 +242,22 @@ public class AirshipManager {
             //        }
             //    }
             //}
+        }
+    }
+    public class AirshipOrientedInfo {
+        public AirshipContraptionEntity airship;
+        public Vector3d position;
+        public Quaternion orientation;
+        public World level;
+        public boolean onAirship;
+
+
+        public AirshipOrientedInfo(AirshipContraptionEntity airship,Vector3d vector3d, Quaternion orientation, World world, boolean onAirship) {
+            this.airship = airship;
+            this.position = vector3d;
+            this.orientation = orientation;
+            this.level = world;
+            this.onAirship = onAirship;
         }
     }
 }

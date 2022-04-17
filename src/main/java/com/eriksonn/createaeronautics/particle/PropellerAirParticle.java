@@ -18,11 +18,13 @@ import javax.annotation.Nonnull;
 
 public class PropellerAirParticle extends SimpleAnimatedParticle {
     Vector3d motion;
+    public static final double frictionScale=0.2;
+    public static final int lifeTime = 20;
     protected PropellerAirParticle(ClientWorld world, double x, double y, double z, double dx, double dy,
                           double dz, IAnimatedSprite sprite) {
         super(world, x, y, z, sprite, world.random.nextFloat() * .5f);
         this.quadSize *= 0.75F;
-        this.lifetime = 20;
+        this.lifetime = lifeTime;
         hasPhysics = false;
         selectSprite(7);
         Vector3d offset = VecHelper.offsetRandomly(Vector3d.ZERO, Create.RANDOM, .5f);
@@ -54,7 +56,7 @@ public class PropellerAirParticle extends SimpleAnimatedParticle {
             xd = motion.x;
             yd = motion.y;
             zd = motion.z;
-            double friction = 0.2*motion.lengthSqr();
+            double friction = frictionScale*motion.lengthSqr();
             friction=Math.min(friction,0.5f);
             motion=motion.scale(1.0-friction);
             this.move(this.xd, this.yd, this.zd);

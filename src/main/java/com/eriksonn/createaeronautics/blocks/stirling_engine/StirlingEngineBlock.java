@@ -1,14 +1,10 @@
 package com.eriksonn.createaeronautics.blocks.stirling_engine;
 
 
-import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingBlock;
 import com.eriksonn.createaeronautics.index.CAShapes;
 import com.eriksonn.createaeronautics.index.CATileEntities;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.content.contraptions.base.HorizontalKineticBlock;
-import com.simibubi.create.foundation.item.ItemHelper;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.AbstractFurnaceBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -29,8 +25,6 @@ import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraftforge.items.ItemHandlerHelper;
 
-import java.util.function.Consumer;
-
 import static net.minecraft.block.AbstractFurnaceBlock.LIT;
 
 public class StirlingEngineBlock extends HorizontalKineticBlock {
@@ -38,16 +32,18 @@ public class StirlingEngineBlock extends HorizontalKineticBlock {
         super(properties);
         this.registerDefaultState(this.defaultBlockState().setValue(LIT, false));
     }
+
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader world) {
         return CATileEntities.STIRLING_ENGINE.create();
-
     }
+
     @Override
     protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
         builder.add(LIT);
         super.createBlockStateDefinition(builder);
     }
+
     @Override
     public void onRemove(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.hasTileEntity() && state.getBlock() != newState.getBlock()) {
@@ -57,14 +53,17 @@ public class StirlingEngineBlock extends HorizontalKineticBlock {
             worldIn.removeBlockEntity(pos);
         }
     }
+
     @Override
     public boolean hasShaftTowards(IWorldReader world, BlockPos pos, BlockState state, Direction face) {
         return face == state.getValue(HORIZONTAL_FACING);
     }
+
     @Override
     public Direction.Axis getRotationAxis(BlockState state) {
         return state.getValue(HORIZONTAL_FACING).getAxis();
     }
+
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
         Direction preferred = getPreferredHorizontalFacing(context);
@@ -76,6 +75,7 @@ public class StirlingEngineBlock extends HorizontalKineticBlock {
         return defaultBlockState().setValue(HORIZONTAL_FACING, preferred);
 
     }
+
     @Override
     public ActionResultType use(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn,
                                 BlockRayTraceResult hit) {
@@ -125,11 +125,10 @@ public class StirlingEngineBlock extends HorizontalKineticBlock {
 
         return ActionResultType.SUCCESS;
     }
-    @Override
-    public VoxelShape getShape(BlockState state, IBlockReader reader, BlockPos pos, ISelectionContext context)
-    {
-        return CAShapes.STIRLING_ENGINE.get(state.getValue(HORIZONTAL_FACING));
 
+    @Override
+    public VoxelShape getShape(BlockState state, IBlockReader reader, BlockPos pos, ISelectionContext context) {
+        return CAShapes.STIRLING_ENGINE.get(state.getValue(HORIZONTAL_FACING));
     }
 
     public static boolean isLitState(BlockState blockState) {

@@ -84,9 +84,7 @@ public class AirshipAssemblerBlock extends Block implements ITE<AirshipAssembler
             });
             return ActionResultType.SUCCESS;
         } else if (player.getItemInHand(handIn).isEmpty()) {
-            if (worldIn.isClientSide) {
-                return ActionResultType.SUCCESS;
-            } else {
+            if (!worldIn.isClientSide) {
                 this.withTileEntityDo(worldIn, pos, (te) -> {
                     boolean previouslyPowered = state.getValue(ACTIVE);
                     if (previouslyPowered == te.running)
@@ -99,8 +97,8 @@ public class AirshipAssemblerBlock extends Block implements ITE<AirshipAssembler
                     }
 
                 });
-                return ActionResultType.SUCCESS;
             }
+            return ActionResultType.SUCCESS;
         } else {
             return ActionResultType.PASS;
         }

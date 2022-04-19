@@ -60,7 +60,7 @@ public class InspectScenariosScreen  extends NavigatableSimiScreen {
         widgets.add(balanceTestButton);
         layout.next();
 
-        // bouyancy test
+        // buoyancy test
         bouyancyTestButton =
                 new PonderButton(itemCenterX + layout.getX() + 4, itemCenterY + layout.getY() + 4).showing(new ItemStack(Items.WATER_BUCKET))
                         .withCallback(() -> {

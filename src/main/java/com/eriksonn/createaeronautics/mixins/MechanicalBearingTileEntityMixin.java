@@ -1,6 +1,6 @@
 package com.eriksonn.createaeronautics.mixins;
 
-import com.eriksonn.createaeronautics.blocks.propeller_bearing.MecanicalBearingTileEntityExtension;
+import com.eriksonn.createaeronautics.blocks.propeller_bearing.MechanicalBearingTileEntityExtension;
 import com.eriksonn.createaeronautics.utils.BearingContraptionExtension;
 import com.simibubi.create.content.contraptions.components.structureMovement.AssemblyException;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingContraption;
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(MechanicalBearingTileEntity.class)
-public class MechanicalBearingTileEntityMixin implements MecanicalBearingTileEntityExtension {
+public class MechanicalBearingTileEntityMixin implements MechanicalBearingTileEntityExtension {
     @Redirect(
             method = "assemble()V",
             at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/components/structureMovement/bearing/BearingContraption;assemble(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)Z", remap = false),

@@ -25,16 +25,18 @@ public class AirshipAssemblerTileEntity extends SmartTileEntity implements IDisp
 
 
     public AirshipAssemblerTileEntity(TileEntityType<?> typeIn) {
-
         super(typeIn);
         this.setLazyTickRate(3);
     }
+
     public void addBehaviours(List<TileEntityBehaviour> behaviours) {
         //super.addBehaviours(behaviours);
     }
+
     public AssemblyException getLastAssemblyException() {
         return this.lastException;
     }
+
     public void assemble() {
         if (this.level.getBlockState(this.worldPosition).getBlock() instanceof AirshipAssemblerBlock) {
             AirshipContraption contraption = new AirshipContraption();
@@ -72,10 +74,9 @@ public class AirshipAssemblerTileEntity extends SmartTileEntity implements IDisp
             this.sendData();
         }
     }
+
     public void tick() {
         super.tick();
-
-
 
         if (!this.level.isClientSide && this.assembleNextTick) {
             this.assembleNextTick = false;
@@ -87,6 +88,7 @@ public class AirshipAssemblerTileEntity extends SmartTileEntity implements IDisp
             }
             time=0;
         }
+
         if(this.movedContraption!=null)
         {
 time++;
@@ -106,12 +108,12 @@ stack[0].mulPose(Q);
         this.running = this.level==AirshipDimensionManager.INSTANCE.getWorld();
 
     }
+
     public void lazyTick() {
         super.lazyTick();
         if (this.movedContraption != null && !this.level.isClientSide) {
             this.sendData();
         }
-
     }
     public void attach(AirshipContraptionEntity contraption) {
         this.movedContraption = contraption;
@@ -148,20 +150,25 @@ stack[0].mulPose(Q);
             this.sendData();
         }
     }
+
     public void onStall() {
         if (!this.level.isClientSide) {
             this.sendData();
         }
 
     }
+
     public void collided() {
     }
+
     public BlockPos getBlockPosition() {
         return this.worldPosition;
     }
+
     public boolean isValid() {
         return !this.isRemoved();
     }
+
     public boolean isAttachedTo(AbstractContraptionEntity contraption) {
         return this.movedContraption == contraption;
     }

@@ -45,7 +45,7 @@ import java.util.Map;
 
 import static net.minecraft.state.properties.BlockStateProperties.FACING;
 
-public class PropellerBearingTileEntity extends MechanicalBearingTileEntity implements MecanicalBearingTileEntityExtension, IThrustProvider {
+public class PropellerBearingTileEntity extends MechanicalBearingTileEntity implements MechanicalBearingTileEntityExtension, IThrustProvider {
     public ScrollOptionBehaviour<ThrustDirection> movementDirection;
     protected float lastGeneratedSpeed;
     public List<BlockPos> sailPositions;
